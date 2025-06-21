@@ -1,26 +1,26 @@
 {
   "schemaVersion": 1,
-  "id": "architecturymod",
+  "id": "motivationinnovation",
   "version": "${version}",
-  "name": "Architectury Mod",
-  "description": "Mod Description",
+  "name": "Motivation Innovation",
+  "description": "A simple mod to encourage villagers to behave as you wish.",
   "authors": [
     "JensenJ - Developer"
   ],
   "contact": {
-    "sources": "https://github.com/JensenJ-Modding/Architectury-Template",
-    "issues": "https://github.com/JensenJ-Modding/Architectury-Template/issues"
+    "sources": "https://github.com/JensenJ-Modding/Motivation-Innovation",
+    "issues": "https://github.com/JensenJ-Modding/Motivation-Innovation/issues"
   },
   "license": "MIT License",
   "environment": "*",
   "entrypoints": {
     "main": [
-      "net.architecturymod.fabric.ArchitecturyModFabric"
+      "net.motivationinnovation.fabric.MotivationInnovationFabric"
     ]
   },
   "mixins": [
-    "architecturymod-common.mixins.json",
-    "architecturymod-fabric.mixins.json"
+    "motivationinnovation-common.mixins.json",
+    "motivationinnovation-fabric.mixins.json"
   ],
   "depends": {
     "fabric": "*",

@@ -1,32 +1,32 @@
 modLoader = "javafml"
 loaderVersion = "[4,)"
-issueTrackerURL = "https://github.com/JensenJ-Modding/Architectury-Template/issues"
+issueTrackerURL = "https://github.com/JensenJ-Modding/Motivation-Innovation/issues"
 license = "MIT License"
 
 [[mods]]
-modId = "architecturymod"
+modId = "motivationinnovation"
 version = "${version}"
-displayName = "Architectury Mod"
+displayName = "Motivation Innovation"
 authors = "JensenJ - Developer"
 description = '''
-Mod Description
+A simple mod to encourage villagers to behave as you wish.
 '''
 
-[[dependencies.architecturymod]]
+[[dependencies.motivationinnovation]]
 modId = "neoforge"
 type = "required"
 versionRange = "[21.1,)"
 ordering = "NONE"
 side = "BOTH"
 
-[[dependencies.architecturymod]]
+[[dependencies.motivationinnovation]]
 modId = "minecraft"
 type = "required"
 versionRange = "[1.21.1,)"
 ordering = "NONE"
 side = "BOTH"
 
-[[dependencies.architecturymod]]
+[[dependencies.motivationinnovation]]
 modId = "architectury"
 type = "required"
 versionRange = "[13.0.8,)"
@@ -34,7 +34,7 @@ ordering = "AFTER"
 side = "BOTH"
 
 [[mixins]]
-config = "architecturymod-neoforge.mixins.json"
+config = "motivationinnovation-neoforge.mixins.json"
 
 [[mixins]]
-config = "architecturymod-common.mixins.json"
+config = "motivationinnovation-common.mixins.json"
