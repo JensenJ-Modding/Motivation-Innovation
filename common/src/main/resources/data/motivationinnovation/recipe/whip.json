@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "B": {
+      "item": "minecraft:breeze_rod"
+    },
+    "D": {
+      "item": "minecraft:diamond"
+    },
+    "P": {
+      "item": "minecraft:blaze_powder"
+    },
+    "L": {
+      "item": "minecraft:lead"
+    }
+  },
+  "pattern": [
+    "LPL",
+    "DBD",
+    " B "
+  ],
+  "result": {
+    "id": "motivationinnovation:whip",
+    "count": 1
+  }
+}
