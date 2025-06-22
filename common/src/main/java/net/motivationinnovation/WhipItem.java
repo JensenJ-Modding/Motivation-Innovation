@@ -29,7 +29,6 @@ import net.motivationinnovation.network.VillagerSyncPacket;
 
 public class WhipItem extends Item {
 
-    private Villager targetedVillager = null;
     private ServerPlayer owner = null;
     public static Map<Villager, WhipItem> boundWhips = new HashMap<>();
 
@@ -59,8 +58,8 @@ public class WhipItem extends Item {
             return tryRefreshVillagerTrades(player, villager, whipItem);
         }
 
-        whipItem.setTargetedVillager(villager);
         whipItem.owner = (ServerPlayer) player;
+        boundWhips.put(villager, whipItem);
         refreshPacket(villager, whipItem.owner);
 
         return EventResult.pass();
@@ -83,7 +82,9 @@ public class WhipItem extends Item {
         }
 
         NetworkManager.sendToPlayer(
-                owner, new VillagerSyncPacket(optHomePos.isPresent(), homePos, optJobPos.isPresent(), jobPos));
+                owner,
+                new VillagerSyncPacket(
+                        villager.getUUID(), optHomePos.isPresent(), homePos, optJobPos.isPresent(), jobPos));
     }
 
     public static void markDirty(Villager villager) {
@@ -153,14 +154,5 @@ public class WhipItem extends Item {
     public void appendHoverText(
             ItemStack itemStack, TooltipContext tooltipContext, List<Component> list, TooltipFlag tooltipFlag) {
         list.add(Component.translatable("tooltip.motivationinnovation.whip").withStyle(ChatFormatting.DARK_PURPLE));
-    }
-
-    public void setTargetedVillager(Villager villager) {
-        boundWhips.put(villager, this);
-        this.targetedVillager = villager;
-    }
-
-    public Villager getTargetedVillager() {
-        return this.targetedVillager;
     }
 }

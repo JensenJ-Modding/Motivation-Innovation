@@ -6,8 +6,12 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Rarity;
 
 import dev.architectury.event.events.common.InteractionEvent;
+import dev.architectury.networking.NetworkManager;
+import dev.architectury.platform.Platform;
 import dev.architectury.registry.registries.DeferredRegister;
 import dev.architectury.registry.registries.RegistrySupplier;
+import net.fabricmc.api.EnvType;
+import net.motivationinnovation.network.VillagerSyncPacket;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -26,5 +30,9 @@ public class MotivationInnovation {
     public static void init() {
         ITEMS.register();
         InteractionEvent.INTERACT_ENTITY.register((WhipItem::handleWhipInteraction));
+
+        if (Platform.getEnv() == EnvType.SERVER) {
+            NetworkManager.registerS2CPayloadType(VillagerSyncPacket.TYPE, VillagerSyncPacket.STREAM_CODEC);
+        }
     }
 }

@@ -1,5 +1,7 @@
 package net.motivationinnovation;
 
+import java.util.List;
+
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -22,6 +24,7 @@ import net.motivationinnovation.network.VillagerSyncPacket;
 
 public class MotivationInnovationClient {
 
+    public static Villager targetVillager;
     public static BlockPos jobSitePos;
     public static BlockPos bedPos;
 
@@ -31,6 +34,17 @@ public class MotivationInnovationClient {
                 VillagerSyncPacket.TYPE,
                 VillagerSyncPacket.STREAM_CODEC,
                 ((value, context) -> {
+                    Player player = context.getPlayer();
+                    List<Villager> villagers = player.level()
+                            .getEntitiesOfClass(
+                                    Villager.class, player.getBoundingBox().inflate(48));
+                    for (Villager villager : villagers) {
+                        if (villager.getUUID().equals(value.villagerUUID())) {
+                            targetVillager = villager;
+                            break;
+                        }
+                    }
+
                     if (value.home()) {
                         bedPos = value.homePos();
                     } else {
@@ -44,7 +58,7 @@ public class MotivationInnovationClient {
                 }));
     }
 
-    public static void renderVillagerOutline(Villager villager) {
+    public static void renderVillager() {
         Player player = Minecraft.getInstance().player;
         if (player == null) {
             return;
@@ -53,109 +67,80 @@ public class MotivationInnovationClient {
         ItemStack stackMain = player.getItemInHand(InteractionHand.MAIN_HAND);
         ItemStack stackOff = player.getItemInHand(InteractionHand.MAIN_HAND);
 
-        // Prioritize the whip in the main hand for rendering
-        if (stackMain.getItem() instanceof WhipItem whip) {
-            internalRenderVillager(whip, villager);
-        } else if (stackOff.getItem() instanceof WhipItem whip) {
-            internalRenderVillager(whip, villager);
+        if (!(stackMain.getItem() instanceof WhipItem) && !(stackOff.getItem() instanceof WhipItem)) {
+            return;
         }
-    }
 
-    public static void internalRenderVillager(WhipItem whip, Villager villager) {
-        Villager targetVillager = whip.getTargetedVillager();
         if (targetVillager == null) {
             return;
         }
 
         if (targetVillager.isDeadOrDying()) {
+            targetVillager = null;
             return;
         }
 
         if (targetVillager.touchingUnloadedChunk()) {
-            whip.setTargetedVillager(null);
-        }
-
-        if (targetVillager.equals(villager)) {
-            Outliner.getInstance()
-                    .showAABB("motivationinnovation:villager", villager.getBoundingBox())
-                    .colored(Color.RED)
-                    .disableCull();
-        }
-    }
-
-    public static void renderVillagerPOIs() {
-        Player player = Minecraft.getInstance().player;
-        if (player == null) {
-            return;
-        }
-
-        ItemStack stackMain = player.getItemInHand(InteractionHand.MAIN_HAND);
-        ItemStack stackOff = player.getItemInHand(InteractionHand.MAIN_HAND);
-
-        // Prioritize the whip in the main hand for rendering
-        if (stackMain.getItem() instanceof WhipItem whip) {
-            internalRenderVillagerPOIs(whip.getTargetedVillager());
-        } else if (stackOff.getItem() instanceof WhipItem whip) {
-            internalRenderVillagerPOIs(whip.getTargetedVillager());
-        }
-    }
-
-    public static void internalRenderVillagerPOIs(Villager villager) {
-        if (villager == null) {
-            return;
-        }
-
-        if (villager.isDeadOrDying()) {
+            targetVillager = null;
             return;
         }
 
         Outliner.getInstance()
-                .showAABB("motivationinnovation:villager", villager.getBoundingBox())
+                .showAABB("motivationinnovation:villager", targetVillager.getBoundingBox())
                 .colored(Color.RED)
                 .disableCull();
 
         if (jobSitePos != null) {
-            BlockState state = villager.level().getBlockState(jobSitePos);
-            boolean foundSite = false;
-            for (PoiType poiType : BuiltInRegistries.POINT_OF_INTEREST_TYPE) {
-                if (poiType.is(state)) {
-                    Outliner.getInstance()
-                            .showAABB("motivationinnovation:jobSite", new AABB(jobSitePos))
-                            .colored(Color.RED)
-                            .disableCull();
-                    Outliner.getInstance()
-                            .showLine(
-                                    "motivationinnovation:jobSiteLink",
-                                    jobSitePos.getCenter(),
-                                    villager.getEyePosition())
-                            .colored(Color.RED)
-                            .disableCull();
-                    foundSite = true;
-                    break;
-                }
-            }
-            if (!foundSite) {
-                jobSitePos = null;
-            }
+            renderJobSite();
         }
 
         if (bedPos != null) {
-            BlockState state = villager.level().getBlockState(bedPos);
-            if (state.getBlock() instanceof BedBlock) {
-                Direction direction = state.getValue(FACING).getOpposite();
+            renderBed();
+        }
+    }
+
+    public static void renderJobSite() {
+        BlockState state = targetVillager.level().getBlockState(jobSitePos);
+        boolean foundSite = false;
+        for (PoiType poiType : BuiltInRegistries.POINT_OF_INTEREST_TYPE) {
+            if (poiType.is(state)) {
                 Outliner.getInstance()
-                        .showAABB(
-                                "motivationinnovation:bed",
-                                AABB.encapsulatingFullBlocks(bedPos, bedPos.relative(direction)))
+                        .showAABB("motivationinnovation:jobSite", new AABB(jobSitePos))
                         .colored(Color.RED)
                         .disableCull();
                 Outliner.getInstance()
-                        .showLine("motivationinnovation:bedLink", bedPos.getCenter(), villager.getEyePosition())
+                        .showLine(
+                                "motivationinnovation:jobSiteLink",
+                                jobSitePos.getCenter(),
+                                targetVillager.getEyePosition())
                         .colored(Color.RED)
                         .disableCull();
-            } else {
-                bedPos = null;
+                foundSite = true;
+                break;
             }
+        }
+
+        if (!foundSite) {
+            jobSitePos = null;
+        }
+    }
+
+    public static void renderBed() {
+        BlockState state = targetVillager.level().getBlockState(bedPos);
+        if (state.getBlock() instanceof BedBlock) {
+            Direction direction = state.getValue(FACING).getOpposite();
+            Outliner.getInstance()
+                    .showAABB(
+                            "motivationinnovation:bed",
+                            AABB.encapsulatingFullBlocks(bedPos, bedPos.relative(direction)))
+                    .colored(Color.RED)
+                    .disableCull();
+            Outliner.getInstance()
+                    .showLine("motivationinnovation:bedLink", bedPos.getCenter(), targetVillager.getEyePosition())
+                    .colored(Color.RED)
+                    .disableCull();
+        } else {
+            bedPos = null;
         }
     }
 }
