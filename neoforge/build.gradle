@@ -4,3 +4,12 @@ plugins {
 
 apply from: 'https://raw.githubusercontent.com/JensenJ-Modding/Mod-Resources/refs/heads/main/1.21.1/Gradle/neoforge-build.gradle'
 
+
+repositories {
+    maven { url = "https://maven.createmod.net" }
+}
+
+dependencies {
+    modRuntimeOnly(include("net.createmod.ponder:Ponder-NeoForge-${minecraft_version}:${ponder_version}")) { transitive = false}
+    modRuntimeOnly(include("dev.engine-room.flywheel:flywheel-neoforge-${minecraft_version}:${flywheel_version}"))
+}

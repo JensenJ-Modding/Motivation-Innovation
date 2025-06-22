@@ -4,3 +4,17 @@ plugins {
 
 apply from: 'https://raw.githubusercontent.com/JensenJ-Modding/Mod-Resources/refs/heads/main/1.21.1/Gradle/fabric-build.gradle'
 
+repositories {
+    maven { url = "https://maven.createmod.net" } // Ponder
+    maven { url = "https://mvn.devos.one/releases" } // Porting Lib (needed for ponder)
+    maven {
+        url "https://maven.jamieswhiteshirt.com/libs-release" // Reach Entity Attributes (needed for porting lib)
+        content {
+            includeGroup "com.jamieswhiteshirt"
+        }
+    }
+}
+
+dependencies {
+    modImplementation(include("net.createmod.ponder:Ponder-Fabric-${minecraft_version}:${ponder_version}"))
+}

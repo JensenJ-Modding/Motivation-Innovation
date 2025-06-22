@@ -1,17 +1,17 @@
 package net.motivationinnovation;
 
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import net.minecraft.ChatFormatting;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.GlobalPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.stats.Stats;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
@@ -22,34 +22,19 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
-import net.minecraft.world.item.context.UseOnContext;
 
 import dev.architectury.event.EventResult;
-import org.jetbrains.annotations.NotNull;
+import dev.architectury.networking.NetworkManager;
+import net.motivationinnovation.network.VillagerSyncPacket;
 
 public class WhipItem extends Item {
 
     private Villager targetedVillager = null;
+    private ServerPlayer owner = null;
+    public static Map<Villager, WhipItem> boundWhips = new HashMap<>();
 
     public WhipItem(Properties properties) {
         super(properties);
-    }
-
-    @Override
-    public @NotNull InteractionResult useOn(UseOnContext useOnContext) {
-        if (targetedVillager == null) {
-            return InteractionResult.PASS;
-        }
-
-        if (targetedVillager.isDeadOrDying()) {
-            return InteractionResult.PASS;
-        }
-
-        if (targetedVillager.touchingUnloadedChunk()) {
-            return InteractionResult.PASS;
-        }
-
-        return InteractionResult.PASS;
     }
 
     public static EventResult handleWhipInteraction(Player player, Entity entity, InteractionHand hand) {
@@ -75,15 +60,38 @@ public class WhipItem extends Item {
         }
 
         whipItem.setTargetedVillager(villager);
-
-        Brain<Villager> brain = villager.getBrain();
-        Optional<GlobalPos> jobSite = brain.getMemory(MemoryModuleType.JOB_SITE);
-        Optional<GlobalPos> bed = brain.getMemory(MemoryModuleType.HOME);
-
-        MotivationInnovation.LOGGER.info("job: {}", jobSite);
-        MotivationInnovation.LOGGER.info("bed: {}", bed);
+        whipItem.owner = (ServerPlayer) player;
+        refreshPacket(villager, whipItem.owner);
 
         return EventResult.pass();
+    }
+
+    public static void refreshPacket(Villager villager, ServerPlayer owner) {
+        Brain<Villager> brain = villager.getBrain();
+        Optional<GlobalPos> optHomePos = brain.getMemory(MemoryModuleType.HOME);
+        Optional<GlobalPos> optJobPos = brain.getMemory(MemoryModuleType.JOB_SITE);
+
+        BlockPos homePos = BlockPos.ZERO;
+        BlockPos jobPos = BlockPos.ZERO;
+
+        if (optHomePos.isPresent()) {
+            homePos = optHomePos.get().pos();
+        }
+
+        if (optJobPos.isPresent()) {
+            jobPos = optJobPos.get().pos();
+        }
+
+        NetworkManager.sendToPlayer(
+                owner, new VillagerSyncPacket(optHomePos.isPresent(), homePos, optJobPos.isPresent(), jobPos));
+    }
+
+    public static void markDirty(Villager villager) {
+        WhipItem whip = boundWhips.get(villager);
+        if (whip == null) {
+            return;
+        }
+        refreshPacket(villager, whip.owner);
     }
 
     public static EventResult tryRefreshVillagerTrades(Player player, Villager villager, WhipItem whipItem) {
@@ -136,7 +144,7 @@ public class WhipItem extends Item {
                         SoundEvents.LIGHTNING_BOLT_IMPACT,
                         SoundSource.NEUTRAL,
                         0.25F,
-                        0.4F / (player.level().getRandom().nextFloat() * 0.4F + 0.8F));
+                        (player.level().getRandom().nextFloat() * 1.1F + 0.8F));
 
         return EventResult.pass();
     }
@@ -148,6 +156,7 @@ public class WhipItem extends Item {
     }
 
     public void setTargetedVillager(Villager villager) {
+        boundWhips.put(villager, this);
         this.targetedVillager = villager;
     }
 

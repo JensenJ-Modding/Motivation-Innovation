@@ -1,2 +1,10 @@
 apply from: 'https://raw.githubusercontent.com/JensenJ-Modding/Mod-Resources/refs/heads/main/1.21.1/Gradle/common-build.gradle'
 
+repositories {
+    maven { url = "https://maven.createmod.net" }
+}
+
+dependencies {
+    modImplementation("net.createmod.ponder:Ponder-Common-${minecraft_version}:${ponder_version}")
+}
+

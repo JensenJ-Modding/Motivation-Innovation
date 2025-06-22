@@ -16,6 +16,9 @@
   "entrypoints": {
     "main": [
       "net.motivationinnovation.fabric.MotivationInnovationFabric"
+    ],
+    "client": [
+      "net.motivationinnovation.fabric.MotivationInnovationClientFabric"
     ]
   },
   "mixins": [
